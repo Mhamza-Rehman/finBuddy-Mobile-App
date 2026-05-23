@@ -7,14 +7,13 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
 fun BottomNavigationBar(navController: NavController, currentScreen: String) {
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
         tonalElevation = 8.dp
     ) {
         NavigationBarItem(
@@ -29,9 +28,11 @@ fun BottomNavigationBar(navController: NavController, currentScreen: String) {
             icon = { Icon(Icons.Default.GridView, contentDescription = "Home") },
             label = { Text("Home") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF0F9D58),
-                selectedTextColor = Color(0xFF0F9D58),
-                indicatorColor = Color(0xFFE8F5E9)
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                indicatorColor = MaterialTheme.colorScheme.surface
             )
         )
         NavigationBarItem(
@@ -44,9 +45,11 @@ fun BottomNavigationBar(navController: NavController, currentScreen: String) {
             icon = { Icon(Icons.Default.History, contentDescription = "Activity") },
             label = { Text("Activity") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF0F9D58),
-                selectedTextColor = Color(0xFF0F9D58),
-                indicatorColor = Color(0xFFE8F5E9)
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                indicatorColor = MaterialTheme.colorScheme.surface
             )
         )
         NavigationBarItem(
@@ -59,9 +62,11 @@ fun BottomNavigationBar(navController: NavController, currentScreen: String) {
             icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
             label = { Text("Settings") },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFF0F9D58),
-                selectedTextColor = Color(0xFF0F9D58),
-                indicatorColor = Color(0xFFE8F5E9)
+                selectedIconColor = MaterialTheme.colorScheme.primary,
+                selectedTextColor = MaterialTheme.colorScheme.primary,
+                unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                indicatorColor = MaterialTheme.colorScheme.surface
             )
         )
     }

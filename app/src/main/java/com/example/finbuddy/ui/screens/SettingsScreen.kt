@@ -33,9 +33,10 @@ import com.example.finbuddy.ui.viewmodel.SettingsViewModel
 @Composable
 fun SettingsScreen(
     navController: NavController,
+    isDarkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit,
     viewModel: SettingsViewModel = viewModel()
 ) {
-    var isDarkMode by remember { mutableStateOf(true) }
     val uiState by viewModel.uiState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -51,12 +52,12 @@ fun SettingsScreen(
                 title = { Text("Settings", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {
                     IconButton(onClick = {}) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
+                        Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -67,7 +68,7 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
@@ -102,7 +103,7 @@ fun SettingsScreen(
                 trailing = {
                     Switch(
                         checked = isDarkMode,
-                        onCheckedChange = { isDarkMode = it },
+                        onCheckedChange = onDarkModeChange,
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = Color(0xFF0F9D58)
@@ -149,7 +150,7 @@ private fun ProfileCard(uiState: SettingsUiState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -191,9 +192,9 @@ private fun ProfileCard(uiState: SettingsUiState) {
                     text = displayName,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color(0xFF1A1C1E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Text(text = email, fontSize = 14.sp, color = Color.Gray)
+                Text(text = email, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
             }
         }
     }
@@ -205,7 +206,7 @@ fun SettingsSectionHeader(text: String) {
         text = text,
         fontSize = 12.sp,
         fontWeight = FontWeight.Bold,
-        color = Color(0xFF0F9D58).copy(alpha = 0.7f),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
         modifier = Modifier.padding(bottom = 16.dp)
     )
 }
@@ -244,14 +245,14 @@ fun SettingsItem(
 
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1A1C1E))
+            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onBackground)
             if (subtitle != null) {
                 Text(text = subtitle, fontSize = 12.sp, color = Color(0xFF0F9D58))
             }
         }
 
         if (trailing != null) trailing() else if (onClick != null) {
-            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
+            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))
         }
     }
 }

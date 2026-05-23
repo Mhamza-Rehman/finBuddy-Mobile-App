@@ -32,31 +32,26 @@ import com.example.finbuddy.ui.viewmodel.SelectedFilter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ActivityScreen(
-    navController: NavController,
-    viewModel: ActivityViewModel = viewModel()
-) {
+fun ActivityScreen(navController: NavController, viewModel: ActivityViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(lifecycleOwner) {
-        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            viewModel.fetchTransactions()
-        }
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) { viewModel.fetchTransactions() }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Activity", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
+                title = { Text("Activity", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onBackground) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 actions = {
                     IconButton(onClick = {}) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More")
+                        Icon(Icons.Default.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -65,74 +60,43 @@ fun ActivityScreen(
         bottomBar = { BottomNavigationBar(navController, currentScreen = "activity") }
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(innerPadding).padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-
             val query = (uiState as? ActivityUiState.Success)?.searchQuery ?: ""
             OutlinedTextField(
                 value = query,
                 onValueChange = viewModel::onSearchQueryChange,
-                placeholder = { Text("Search transactions...", color = Color.Gray) },
+                placeholder = { Text("Search transactions...", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(15.dp),
-                leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF0F9D58))
-                },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent
                 ),
                 singleLine = true
             )
-
             Spacer(modifier = Modifier.height(20.dp))
-
             val selected = (uiState as? ActivityUiState.Success)?.selectedFilter ?: SelectedFilter.ALL
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                ActivityFilterChip(selected == SelectedFilter.ALL, "All") {
-                    viewModel.onFilterChange(SelectedFilter.ALL)
-                }
-                ActivityFilterChip(selected == SelectedFilter.DEPOSITS, "Deposits") {
-                    viewModel.onFilterChange(SelectedFilter.DEPOSITS)
-                }
-                ActivityFilterChip(selected == SelectedFilter.WITHDRAWALS, "Withdrawals") {
-                    viewModel.onFilterChange(SelectedFilter.WITHDRAWALS)
-                }
+                ActivityFilterChip(selected == SelectedFilter.ALL, "All") { viewModel.onFilterChange(SelectedFilter.ALL) }
+                ActivityFilterChip(selected == SelectedFilter.DEPOSITS, "Deposits") { viewModel.onFilterChange(SelectedFilter.DEPOSITS) }
+                ActivityFilterChip(selected == SelectedFilter.WITHDRAWALS, "Withdrawals") { viewModel.onFilterChange(SelectedFilter.WITHDRAWALS) }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             when (val state = uiState) {
-                ActivityUiState.Loading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Color(0xFF0F9D58))
-                    }
-                }
-                is ActivityUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(state.message, color = Color(0xFFB3261E))
-                    }
-                }
+                ActivityUiState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
+                is ActivityUiState.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(state.message, color = MaterialTheme.colorScheme.error) }
                 is ActivityUiState.Success -> {
                     val listState = rememberLazyListState()
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         state.groups.forEach { group ->
-                            item(key = "header_${group.header}") {
-                                ActivitySectionHeader(group.header)
-                            }
-                            items(group.transactions, key = { it.id ?: "${it.category}-${it.timestamp}" }) { transaction ->
-                                TransactionRow(transaction, viewModel.formatTime(transaction))
+                            item(key = "header_${group.header}") { ActivitySectionHeader(group.header) }
+                            items(group.transactions, key = { it.id ?: "${it.category}-${it.timestamp}" }) { tx ->
+                                TransactionRow(tx, viewModel.formatTime(tx))
                             }
                         }
                     }
@@ -147,13 +111,13 @@ fun ActivityFilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
     Surface(
         modifier = Modifier.clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        color = if (selected) Color(0xFF0F9D58) else Color.White,
-        border = if (!selected) BorderStroke(1.dp, Color(0xFFE0E0E0)) else null
+        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+        border = if (!selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)) else null
     ) {
         Text(
             text = label,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-            color = if (selected) Color.White else Color(0xFF0F9D58),
+            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium
         )
@@ -162,13 +126,8 @@ fun ActivityFilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
 
 @Composable
 fun ActivitySectionHeader(text: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFF8F9FA))
-            .padding(vertical = 8.dp)
-    ) {
-        Text(text = text, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9E9E9E))
+    Box(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(vertical = 8.dp)) {
+        Text(text = text, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f))
     }
 }
 
@@ -177,27 +136,18 @@ private fun TransactionRow(transaction: Transaction, timeText: String) {
     val isExpense = transaction.type.equals("Expense", ignoreCase = true)
     val amountColor = if (isExpense) Color(0xFFE53935) else Color(0xFF0F9D58)
     val amountPrefix = if (isExpense) "-" else "+"
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(transaction.category, fontWeight = FontWeight.Bold, color = Color(0xFF1A1C1E), fontSize = 15.sp)
-                Text("${transaction.source} • $timeText", color = Color.Gray, fontSize = 12.sp)
+                Text(transaction.category, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp)
+                Text("${transaction.source} • $timeText", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
             }
-            Text(
-                text = "$amountPrefix$${"%.2f".format(transaction.amount)}",
-                color = amountColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
-            )
+            Text("$amountPrefix$${"%.2f".format(transaction.amount)}", color = amountColor, fontWeight = FontWeight.Bold, fontSize = 15.sp)
         }
     }
 }

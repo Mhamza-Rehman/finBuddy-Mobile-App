@@ -62,6 +62,7 @@ fun DashboardScreen(
     val avatarUrl = metrics?.avatarUrl
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             BottomNavigationBar(navController, currentScreen = "dashboard")
         }
@@ -69,7 +70,7 @@ fun DashboardScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
@@ -102,7 +103,7 @@ fun DashboardScreen(
                         text = "FinBuddy",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1C1E)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
                 
@@ -138,7 +139,7 @@ fun DashboardScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
@@ -151,13 +152,13 @@ fun DashboardScreen(
                     ) {
                         Text(
                             text = "Total Balance",
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             fontSize = 14.sp
                         )
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = null,
-                            tint = Color.Gray
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
                     }
                     
@@ -167,7 +168,7 @@ fun DashboardScreen(
                         text = totalBalanceText,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF0F9D58)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -198,7 +199,7 @@ fun DashboardScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "from last month",
-                            color = Color.LightGray,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             fontSize = 12.sp
                         )
                     }
@@ -275,7 +276,7 @@ fun DashboardScreen(
                     text = "Analytics",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1C1E)
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Surface(
                     shape = RoundedCornerShape(8.dp),
@@ -285,7 +286,7 @@ fun DashboardScreen(
                         text = "6 Months",
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         fontSize = 12.sp,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -317,7 +318,7 @@ private fun AnalyticsScoreSection(
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         when (state) {
@@ -340,11 +341,11 @@ private fun AnalyticsScoreSection(
                 ) {
                     Text(
                         text = "Could not load financial score",
-                        color = Color(0xFFB3261E),
+                        color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(text = state.message, color = Color.Gray, fontSize = 12.sp)
+                    Text(text = state.message, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
                     Spacer(modifier = Modifier.height(12.dp))
                     OutlinedButton(onClick = onRetry) { Text("Retry") }
                 }
@@ -365,7 +366,7 @@ private fun AnalyticsScoreSection(
                 Column(modifier = Modifier.padding(24.dp)) {
                     Text(
                         text = "Financial Health Score",
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         fontSize = 14.sp
                     )
                     Spacer(modifier = Modifier.height(10.dp))
@@ -373,7 +374,7 @@ private fun AnalyticsScoreSection(
                         text = "${result.score}/1000",
                         fontSize = 40.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF1A1C1E)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     Surface(
@@ -405,7 +406,7 @@ fun SummaryCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -430,14 +431,14 @@ fun SummaryCard(
             Column {
                 Text(
                     text = title,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     fontSize = 12.sp
                 )
                 Text(
                     text = amount,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
-                    color = Color(0xFF1A1C1E)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
