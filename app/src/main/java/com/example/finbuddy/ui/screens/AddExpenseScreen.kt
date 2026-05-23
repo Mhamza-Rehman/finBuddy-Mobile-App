@@ -1,5 +1,6 @@
 package com.example.finbuddy.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,15 +27,23 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.finbuddy.ui.viewmodel.TransactionUiState
+import com.example.finbuddy.ui.viewmodel.TransactionViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExpenseScreen(navController: NavController) {
+fun AddExpenseScreen(
+    navController: NavController,
+    viewModel: TransactionViewModel = viewModel()
+) {
     var amount by remember { mutableStateOf("0.00") }
     var selectedType by remember { mutableStateOf("Expense") }
     var selectedCategory by remember { mutableStateOf("FOOD") }
     var note by remember { mutableStateOf("") }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val uiState = viewModel.uiState
 
     val categories = listOf(
         CategoryItem("FOOD", Icons.Default.Restaurant, Color(0xFF0F9D58)),
@@ -231,19 +240,34 @@ fun AddExpenseScreen(navController: NavController) {
 
             // Save Transaction Button
             Button(
-                onClick = { navController.popBackStack() },
+                onClick = {
+                    viewModel.saveTransaction(
+                        amountStr = amount,
+                        type = selectedType,
+                        category = selectedCategory
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(64.dp),
                 shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F9D58))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F9D58)),
+                enabled = uiState != TransactionUiState.Loading
             ) {
-                Text(
-                    "Save Transaction",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                if (uiState == TransactionUiState.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        "Save Transaction",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(24.dp))
         }

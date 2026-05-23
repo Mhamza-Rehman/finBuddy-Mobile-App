@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,11 +22,42 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.finbuddy.R
+import com.example.finbuddy.ui.viewmodel.AnalyticsUiState
+import com.example.finbuddy.ui.viewmodel.AnalyticsViewModel
+import com.example.finbuddy.ui.viewmodel.DashboardUiState
+import com.example.finbuddy.ui.viewmodel.DashboardViewModel
+import androidx.compose.runtime.collectAsState
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
-fun DashboardScreen(navController: NavController) {
+fun DashboardScreen(
+    navController: NavController,
+    analyticsViewModel: AnalyticsViewModel = viewModel(),
+    dashboardViewModel: DashboardViewModel = viewModel()
+) {
+    val analyticsState by analyticsViewModel.uiState.collectAsState()
+    val dashboardState by dashboardViewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            dashboardViewModel.refreshMetrics()
+            analyticsViewModel.fetchFinancialScore()
+        }
+    }
+
+    val metrics = (dashboardState as? DashboardUiState.Success)?.metrics
+    val totalBalanceText = formatUsd(metrics?.totalBalance ?: 0.0)
+    val incomeText = formatUsd(metrics?.totalIncome ?: 0.0)
+    val expenseText = formatUsd(metrics?.totalExpenses ?: 0.0)
+
     Scaffold(
         bottomBar = {
             BottomNavigationBar(navController, currentScreen = "dashboard")
@@ -118,7 +151,7 @@ fun DashboardScreen(navController: NavController) {
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     Text(
-                        text = "$24,580.00",
+                        text = totalBalanceText,
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF0F9D58)
@@ -169,7 +202,7 @@ fun DashboardScreen(navController: NavController) {
                 // Income Card
                 SummaryCard(
                     title = "Income",
-                    amount = "$8,420",
+                    amount = incomeText,
                     icon = Icons.Default.ArrowDownward,
                     iconColor = Color(0xFF0F9D58),
                     backgroundColor = Color(0xFFE8F5E9),
@@ -179,7 +212,7 @@ fun DashboardScreen(navController: NavController) {
                 // Expenses Card
                 SummaryCard(
                     title = "Expenses",
-                    amount = "$3,150",
+                    amount = expenseText,
                     icon = Icons.Default.ArrowUpward,
                     iconColor = Color(0xFFE53935),
                     backgroundColor = Color(0xFFFFEBEE),
@@ -246,18 +279,103 @@ fun DashboardScreen(navController: NavController) {
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Analytics Box Placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(Color.White)
-            ) {
-                // Placeholder for charts
-            }
+            AnalyticsScoreSection(
+                state = analyticsState,
+                onRetry = { analyticsViewModel.fetchFinancialScore() }
+            )
             
             Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+private fun formatUsd(amount: Double): String {
+    val formatter = NumberFormat.getCurrencyInstance(Locale.US)
+    return formatter.format(amount)
+}
+
+@Composable
+private fun AnalyticsScoreSection(
+    state: AnalyticsUiState,
+    onRetry: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp)),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        when (state) {
+            AnalyticsUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = Color(0xFF0F9D58))
+                }
+            }
+            is AnalyticsUiState.Error -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Could not load financial score",
+                        color = Color(0xFFB3261E),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(text = state.message, color = Color.Gray, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedButton(onClick = onRetry) { Text("Retry") }
+                }
+            }
+            is AnalyticsUiState.Success -> {
+                val result = state.result
+                val tagColor = when (result.tier) {
+                    "Excellent", "Good" -> Color(0xFF0F9D58)
+                    "Fair" -> Color(0xFFFFB300)
+                    else -> Color(0xFFE53935)
+                }
+                val tagBackground = when (result.tier) {
+                    "Excellent", "Good" -> Color(0xFFE8F5E9)
+                    "Fair" -> Color(0xFFFFF8E1)
+                    else -> Color(0xFFFFEBEE)
+                }
+
+                Column(modifier = Modifier.padding(24.dp)) {
+                    Text(
+                        text = "Financial Health Score",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "${result.score}/1000",
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF1A1C1E)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = tagBackground
+                    ) {
+                        Text(
+                            text = result.tier,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                            color = tagColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
         }
     }
 }
