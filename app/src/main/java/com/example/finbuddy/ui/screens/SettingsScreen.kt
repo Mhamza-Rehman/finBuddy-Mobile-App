@@ -82,14 +82,14 @@ fun SettingsScreen(
                 title = "Profile Information",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { navController.navigate("profile") }
+                onClick = { navController.navigate("profile_info") }
             )
             SettingsItem(
                 icon = Icons.Default.Security,
                 title = "Security",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { }
+                onClick = { navController.navigate("security") }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -110,15 +110,6 @@ fun SettingsScreen(
                     )
                 }
             )
-            SettingsItem(
-                icon = Icons.Default.Language,
-                title = "Language",
-                subtitle = "English (US)",
-                iconContainerColor = Color(0xFFE8F5E9),
-                iconColor = Color(0xFF0F9D58),
-                onClick = { }
-            )
-
             Spacer(modifier = Modifier.height(24.dp))
             SettingsSectionHeader("SUPPORT")
             SettingsItem(
@@ -126,14 +117,14 @@ fun SettingsScreen(
                 title = "Help Center",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { }
+                onClick = { navController.navigate("help_center") }
             )
             SettingsItem(
                 icon = Icons.Default.Info,
                 title = "About FinBuddy",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { }
+                onClick = { navController.navigate("about_finbuddy") }
             )
             Spacer(modifier = Modifier.height(24.dp))
         }

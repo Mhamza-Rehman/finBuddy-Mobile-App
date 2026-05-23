@@ -18,6 +18,10 @@ import com.example.finbuddy.ui.screens.GetStartedScreen
 import com.example.finbuddy.ui.screens.SettingsScreen
 import com.example.finbuddy.ui.screens.SignupScreen
 import com.example.finbuddy.ui.screens.ActivityScreen
+import com.example.finbuddy.ui.screens.ProfileInfoScreen
+import com.example.finbuddy.ui.screens.SecurityScreen
+import com.example.finbuddy.ui.screens.HelpCenterScreen
+import com.example.finbuddy.ui.screens.AboutScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +66,18 @@ fun AppNavigation() {
         }
         composable("profile") {
             ProfileScreen(navController)
+        }
+        composable("profile_info") {
+            ProfileInfoScreen(navController)
+        }
+        composable("security") {
+            SecurityScreen(navController)
+        }
+        composable("help_center") {
+            HelpCenterScreen(navController)
+        }
+        composable("about_finbuddy") {
+            AboutScreen(navController)
         }
     }
 }

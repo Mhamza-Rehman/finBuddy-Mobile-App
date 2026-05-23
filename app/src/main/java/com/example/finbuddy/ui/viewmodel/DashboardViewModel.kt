@@ -3,7 +3,9 @@ package com.example.finbuddy.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.finbuddy.data.model.Transaction
+import com.example.finbuddy.data.model.UserProfile
 import com.example.finbuddy.data.network.SupabaseClient
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +16,8 @@ import kotlinx.coroutines.launch
 data class DashboardMetrics(
     val totalBalance: Double = 0.0,
     val totalIncome: Double = 0.0,
-    val totalExpenses: Double = 0.0
+    val totalExpenses: Double = 0.0,
+    val avatarUrl: String? = null
 )
 
 sealed interface DashboardUiState {
@@ -37,8 +40,18 @@ class DashboardViewModel : ViewModel() {
         _uiState.value = DashboardUiState.Loading
         viewModelScope.launch {
             runCatching {
-                postgrest.from("transactions").select().decodeList<Transaction>()
-            }.onSuccess { transactions ->
+                val transactions = postgrest.from("transactions").select().decodeList<Transaction>()
+                val userId = SupabaseClient.client.auth.currentUserOrNull()?.id
+                val avatarUrl = if (userId != null) {
+                    postgrest.from("profiles")
+                        .select { filter { eq("id", userId) } }
+                        .decodeSingle<UserProfile>()
+                        .avatarUrl
+                } else {
+                    null
+                }
+                transactions to avatarUrl
+            }.onSuccess { (transactions, avatarUrl) ->
                 val totalIncome = transactions
                     .filter { it.type.equals("Income", ignoreCase = true) }
                     .sumOf { it.amount }
@@ -51,7 +64,8 @@ class DashboardViewModel : ViewModel() {
                     DashboardMetrics(
                         totalBalance = totalBalance,
                         totalIncome = totalIncome,
-                        totalExpenses = totalExpenses
+                        totalExpenses = totalExpenses,
+                        avatarUrl = avatarUrl
                     )
                 )
             }.onFailure { e ->

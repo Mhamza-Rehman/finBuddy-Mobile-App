@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -33,6 +34,7 @@ import com.example.finbuddy.ui.viewmodel.AnalyticsViewModel
 import com.example.finbuddy.ui.viewmodel.DashboardUiState
 import com.example.finbuddy.ui.viewmodel.DashboardViewModel
 import androidx.compose.runtime.collectAsState
+import coil.compose.AsyncImage
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -57,6 +59,7 @@ fun DashboardScreen(
     val totalBalanceText = formatUsd(metrics?.totalBalance ?: 0.0)
     val incomeText = formatUsd(metrics?.totalIncome ?: 0.0)
     val expenseText = formatUsd(metrics?.totalExpenses ?: 0.0)
+    val avatarUrl = metrics?.avatarUrl
 
     Scaffold(
         bottomBar = {
@@ -103,19 +106,29 @@ fun DashboardScreen(
                     )
                 }
                 
-                // Profile Image Placeholder
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFFDE7D0)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile",
-                        tint = Color(0xFF8B4513)
+                if (!avatarUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = "User Profile Picture",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFDE7D0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profile",
+                            tint = Color(0xFF8B4513)
+                        )
+                    }
                 }
             }
             
