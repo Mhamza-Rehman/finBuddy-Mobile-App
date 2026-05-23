@@ -9,52 +9,60 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.finbuddy.ui.viewmodel.SettingsUiState
+import com.example.finbuddy.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen(
+    navController: NavController,
+    viewModel: SettingsViewModel = viewModel()
+) {
     var isDarkMode by remember { mutableStateOf(true) }
+    val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            viewModel.fetchProfile()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Settings",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                },
+                title = { Text("Settings", fontWeight = FontWeight.Bold, fontSize = 20.sp) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Search */ }) {
+                    IconButton(onClick = {}) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        bottomBar = {
-            BottomNavigationBar(navController, currentScreen = "settings")
-        }
+        bottomBar = { BottomNavigationBar(navController, currentScreen = "settings") }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -65,69 +73,9 @@ fun SettingsScreen(navController: NavController) {
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Profile Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Profile Image placeholder
-                    Box(
-                        modifier = Modifier
-                            .size(64.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFDE7D0)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp),
-                            tint = Color(0xFF8B4513)
-                        )
-                        // Online indicator
-                        Box(
-                            modifier = Modifier
-                                .size(14.dp)
-                                .align(Alignment.BottomEnd)
-                                .clip(CircleShape)
-                                .background(Color.White)
-                                .padding(2.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF0F9D58))
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Error",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = Color(0xFF1A1C1E)
-                        )
-                        Text(
-                            text = "Error4455@example.com",
-                            fontSize = 14.sp,
-                            color = Color.Gray
-                        )
-                    }
-
-                }
-            }
-
+            ProfileCard(uiState = uiState)
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ACCOUNT Section
             SettingsSectionHeader("ACCOUNT")
             SettingsItem(
                 icon = Icons.Default.Person,
@@ -141,20 +89,11 @@ fun SettingsScreen(navController: NavController) {
                 title = "Security",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { /* Navigate */ }
+                onClick = { }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // PREFERENCES Section
             SettingsSectionHeader("PREFERENCES")
-//            SettingsItem(
-//                icon = Icons.Default.Notifications,
-//                title = "Notifications",
-//                iconContainerColor = Color(0xFFE8F5E9),
-//                iconColor = Color(0xFF0F9D58),
-//                onClick = { /* Navigate */ }
-//            )
             SettingsItem(
                 icon = Icons.Default.DarkMode,
                 title = "Dark Mode",
@@ -177,29 +116,94 @@ fun SettingsScreen(navController: NavController) {
                 subtitle = "English (US)",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { /* Navigate */ }
+                onClick = { }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // SUPPORT Section
             SettingsSectionHeader("SUPPORT")
             SettingsItem(
                 icon = Icons.Default.HelpCenter,
                 title = "Help Center",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { /* Navigate */ }
+                onClick = { }
             )
             SettingsItem(
                 icon = Icons.Default.Info,
                 title = "About FinBuddy",
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
-                onClick = { /* Navigate */ }
+                onClick = { }
             )
-
             Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProfileCard(uiState: SettingsUiState) {
+    val displayName = when (uiState) {
+        is SettingsUiState.Success -> uiState.displayName
+        is SettingsUiState.Error -> "Profile unavailable"
+        SettingsUiState.Loading -> "Loading..."
+    }
+    val email = when (uiState) {
+        is SettingsUiState.Success -> uiState.profile.email
+        is SettingsUiState.Error -> uiState.message
+        SettingsUiState.Loading -> "Fetching account..."
+    }
+    val avatarUrl = (uiState as? SettingsUiState.Success)?.profile?.avatarUrl
+    val fallbackInitial = displayName.firstOrNull()?.uppercase() ?: "U"
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+                if (!avatarUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = avatarUrl,
+                        contentDescription = "Profile photo",
+                        modifier = Modifier.size(64.dp).clip(CircleShape)
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(Color(0xFF0F9D58), Color(0xFF66BB6A))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = fallbackInitial,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = displayName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF1A1C1E)
+                )
+                Text(text = email, fontSize = 14.sp, color = Color.Gray)
+            }
         }
     }
 }
@@ -248,31 +252,15 @@ fun SettingsItem(
         }
 
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color(0xFF1A1C1E)
-            )
+            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1A1C1E))
             if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    fontSize = 12.sp,
-                    color = Color(0xFF0F9D58)
-                )
+                Text(text = subtitle, fontSize = 12.sp, color = Color(0xFF0F9D58))
             }
         }
 
-        if (trailing != null) {
-            trailing()
-        } else if (onClick != null) {
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = Color.LightGray
-            )
+        if (trailing != null) trailing() else if (onClick != null) {
+            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
         }
     }
 }
