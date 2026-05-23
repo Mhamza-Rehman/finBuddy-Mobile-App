@@ -1,6 +1,5 @@
 package com.example.finbuddy.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -13,31 +12,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = Color(0xFF0F9D58),
+    secondary = Color(0xFFFFFFFF),
+    tertiary = Color(0xFF0F9D58),
+    background = Color(0xFF1C1B1F),
+    surface = Color(0xFF1C1B1F)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    primary = Color(0xFF0F9D58),
+    secondary = Color(0xFFFFFFFF),
+    tertiary = Color(0xFF0F9D58),
+    background = Color(0xFFF8F9FA),
+    surface = Color(0xFFFFFFFF)
 )
 
 @Composable
 fun FinBuddyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
@@ -46,17 +38,13 @@ fun FinBuddyTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
     MaterialTheme(
-        colorScheme = lightColorScheme(
-            primary = Color(0xFF0F9D58),
-            secondary = Color(0xFFFFFFFF)
-        ),
-        typography = Typography,
+        colorScheme = colorScheme,
+        typography = AppTypography,
         content = content
     )
 }
