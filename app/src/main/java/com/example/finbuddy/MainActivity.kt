@@ -12,6 +12,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.finbuddy.data.network.SupabaseClient
 import com.example.finbuddy.data.local.ThemeSettings
 import com.example.finbuddy.ui.theme.FinBuddyTheme
 import com.example.finbuddy.ui.screens.SplashScreen
@@ -27,6 +28,7 @@ import com.example.finbuddy.ui.screens.ProfileInfoScreen
 import com.example.finbuddy.ui.screens.SecurityScreen
 import com.example.finbuddy.ui.screens.HelpCenterScreen
 import com.example.finbuddy.ui.screens.AboutScreen
+import io.github.jan.supabase.auth.auth
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -56,8 +58,12 @@ fun AppNavigation(
     onDarkModeChange: (Boolean) -> Unit
 ) {
     val navController = rememberNavController()
+    val startDestination = remember {
+        val currentUser = SupabaseClient.client.auth.currentUserOrNull()
+        if (currentUser != null) "dashboard" else "login"
+    }
 
-    NavHost(navController = navController, startDestination = "splash") {
+    NavHost(navController = navController, startDestination = startDestination) {
         composable("splash") {
             SplashScreen(navController)
         }

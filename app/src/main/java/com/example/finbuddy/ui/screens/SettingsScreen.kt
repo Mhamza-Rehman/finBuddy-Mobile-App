@@ -1,5 +1,6 @@
 package com.example.finbuddy.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,8 +27,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.finbuddy.data.network.SupabaseClient
 import com.example.finbuddy.ui.viewmodel.SettingsUiState
 import com.example.finbuddy.ui.viewmodel.SettingsViewModel
+import io.github.jan.supabase.auth.auth
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +43,8 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -55,11 +61,11 @@ fun SettingsScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                },
+//                actions = {
+//                    IconButton(onClick = {}) {
+//                        Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.onBackground)
+//                    }
+//                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
@@ -126,6 +132,30 @@ fun SettingsScreen(
                 iconContainerColor = Color(0xFFE8F5E9),
                 iconColor = Color(0xFF0F9D58),
                 onClick = { navController.navigate("about_finbuddy") }
+            )
+            SettingsItem(
+                icon = Icons.Default.Logout,
+                title = "Log Out",
+                iconContainerColor = Color(0xFFFFEBEE),
+                iconColor = Color(0xFFC62828),
+                onClick = {
+                    scope.launch {
+                        runCatching { SupabaseClient.client.auth.signOut() }
+                            .onSuccess {
+                                navController.navigate("login") {
+                                    popUpTo(0) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                            .onFailure { error ->
+                                Toast.makeText(
+                                    context,
+                                    error.localizedMessage ?: "Failed to log out",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                    }
+                }
             )
             Spacer(modifier = Modifier.height(24.dp))
         }

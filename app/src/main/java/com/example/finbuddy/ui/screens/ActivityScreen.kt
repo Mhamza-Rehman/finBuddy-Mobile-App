@@ -49,11 +49,7 @@ fun ActivityScreen(navController: NavController, viewModel: ActivityViewModel = 
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onBackground)
                     }
                 },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More", tint = MaterialTheme.colorScheme.onBackground)
-                    }
-                },
+
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
@@ -108,16 +104,17 @@ fun ActivityScreen(navController: NavController, viewModel: ActivityViewModel = 
 
 @Composable
 fun ActivityFilterChip(selected: Boolean, label: String, onClick: () -> Unit) {
+    val brandGreen = Color(0xFF0F9D58)
     Surface(
         modifier = Modifier.clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+        color = if (selected) brandGreen else MaterialTheme.colorScheme.surface,
         border = if (!selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)) else null
     ) {
         Text(
             text = label,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-            color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
+            color = if (selected) Color.White else brandGreen,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium
         )
@@ -134,7 +131,7 @@ fun ActivitySectionHeader(text: String) {
 @Composable
 private fun TransactionRow(transaction: Transaction, timeText: String) {
     val isExpense = transaction.type.equals("Expense", ignoreCase = true)
-    val amountColor = if (isExpense) Color(0xFFE53935) else Color(0xFF0F9D58)
+    val amountColor = if (isExpense) Color(0xFF0F9D58) else Color(0xFFE53935)
     val amountPrefix = if (isExpense) "-" else "+"
     Card(
         modifier = Modifier.fillMaxWidth(),

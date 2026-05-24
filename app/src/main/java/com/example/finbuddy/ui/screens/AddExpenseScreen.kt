@@ -29,8 +29,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.finbuddy.ui.viewmodel.AddTransactionEvent
 import com.example.finbuddy.ui.viewmodel.TransactionUiState
 import com.example.finbuddy.ui.viewmodel.TransactionViewModel
+import kotlinx.coroutines.flow.collectLatest
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,9 +45,28 @@ fun AddExpenseScreen(
     var amount by remember { mutableStateOf("0.00") }
     var selectedType by remember { mutableStateOf("Expense") }
     var selectedCategory by remember { mutableStateOf("FOOD") }
-    var note by remember { mutableStateOf("") }
     val context = androidx.compose.ui.platform.LocalContext.current
     val uiState = viewModel.uiState
+    val currentDateString = remember {
+        LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.events.collectLatest { event ->
+            when (event) {
+                AddTransactionEvent.Completed -> {
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(uiState) {
+        if (uiState is TransactionUiState.Error) {
+            Toast.makeText(context, uiState.message, Toast.LENGTH_SHORT).show()
+            viewModel.resetState()
+        }
+    }
 
     val categories = listOf(
         CategoryItem("FOOD", Icons.Default.Restaurant, Color(0xFF0F9D58)),
@@ -218,21 +241,11 @@ fun AddExpenseScreen(
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 TransactionDetailField(
                     label = "DATE",
-                    value = "October 24, 2023",
+                    value = currentDateString,
                     icon = Icons.Default.CalendarToday,
                     iconColor = Color(0xFFE3F2FD),
                     iconTint = Color(0xFF2196F3),
                     trailingIcon = Icons.Rounded.EditCalendar
-                )
-
-                TransactionDetailField(
-                    label = "NOTES (OPTIONAL)",
-                    value = if (note.isEmpty()) "Add a description..." else note,
-                    icon = Icons.Default.Notes,
-                    iconColor = Color(0xFFF1F3F4),
-                    iconTint = Color.Gray,
-                    isNote = true,
-                    onNoteChange = { note = it }
                 )
             }
 
@@ -244,7 +257,8 @@ fun AddExpenseScreen(
                     viewModel.saveTransaction(
                         amountStr = amount,
                         type = selectedType,
-                        category = selectedCategory
+                        category = selectedCategory,
+                        transactionDate = currentDateString
                     )
                 },
                 modifier = Modifier
@@ -252,7 +266,7 @@ fun AddExpenseScreen(
                     .height(64.dp),
                 shape = RoundedCornerShape(32.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F9D58)),
-                enabled = uiState != TransactionUiState.Loading
+                enabled = uiState != TransactionUiState.Loading && uiState != TransactionUiState.Success
             ) {
                 if (uiState == TransactionUiState.Loading) {
                     CircularProgressIndicator(
@@ -321,9 +335,7 @@ fun TransactionDetailField(
     icon: ImageVector,
     iconColor: Color,
     iconTint: Color,
-    trailingIcon: ImageVector? = null,
-    isNote: Boolean = false,
-    onNoteChange: (String) -> Unit = {}
+    trailingIcon: ImageVector? = null
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -359,35 +371,12 @@ fun TransactionDetailField(
                     color = Color.LightGray,
                     fontWeight = FontWeight.Bold
                 )
-                if (isNote) {
-                    BasicTextField(
-                        value = if (value == "Add a description...") "" else value,
-                        onValueChange = onNoteChange,
-                        textStyle = TextStyle(
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1C1E)
-                        ),
-                        decorationBox = { innerTextField ->
-                            if (value == "Add a description...") {
-                                Text(
-                                    text = "Add a description...",
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.LightGray
-                                )
-                            }
-                            innerTextField()
-                        }
-                    )
-                } else {
-                    Text(
-                        text = value,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1C1E)
-                    )
-                }
+                Text(
+                    text = value,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1C1E)
+                )
             }
             if (trailingIcon != null) {
                 Icon(

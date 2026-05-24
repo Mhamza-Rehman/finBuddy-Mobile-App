@@ -107,30 +107,17 @@ fun DashboardScreen(
                     )
                 }
                 
-                if (!avatarUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = avatarUrl,
-                        contentDescription = "User Profile Picture",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFDE7D0)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Profile",
-                            tint = Color(0xFF8B4513)
-                        )
-                    }
-                }
+                AsyncImage(
+                    model = avatarUrl,
+                    contentDescription = "User Dynamic Profile Picture",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.ic_default_avatar_placeholder),
+                    fallback = painterResource(id = R.drawable.ic_default_avatar_placeholder),
+                    error = painterResource(id = R.drawable.ic_default_avatar_placeholder)
+                )
             }
             
             Spacer(modifier = Modifier.height(24.dp))
@@ -155,11 +142,7 @@ fun DashboardScreen(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             fontSize = 14.sp
                         )
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
+
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -171,38 +154,6 @@ fun DashboardScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color(0xFFE8F5E9)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "2.4%",
-                                    color = Color(0xFF0F9D58),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Icon(
-                                    imageVector = Icons.Default.TrendingUp,
-                                    contentDescription = null,
-                                    tint = Color(0xFF0F9D58),
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "from last month",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            fontSize = 12.sp
-                        )
-                    }
                 }
             }
             
@@ -269,7 +220,7 @@ fun DashboardScreen(
             // Analytics Section
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -278,17 +229,6 @@ fun DashboardScreen(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFFF1F3F4)
-                ) {
-                    Text(
-                        text = "6 Months",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))

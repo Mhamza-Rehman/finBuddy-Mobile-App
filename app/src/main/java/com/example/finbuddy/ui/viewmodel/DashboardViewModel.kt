@@ -43,10 +43,13 @@ class DashboardViewModel : ViewModel() {
                 val transactions = postgrest.from("transactions").select().decodeList<Transaction>()
                 val userId = SupabaseClient.client.auth.currentUserOrNull()?.id
                 val avatarUrl = if (userId != null) {
-                    postgrest.from("profiles")
-                        .select { filter { eq("id", userId) } }
-                        .decodeSingle<UserProfile>()
-                        .avatarUrl
+                    runCatching {
+                        postgrest.from("profiles")
+                            .select { filter { eq("id", userId) } }
+                            .decodeList<UserProfile>()
+                            .firstOrNull()
+                            ?.avatarUrl
+                    }.getOrNull()
                 } else {
                     null
                 }

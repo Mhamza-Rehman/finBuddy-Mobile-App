@@ -16,7 +16,8 @@ interface TransactionRepository {
         accountId: String,
         amount: Double,
         type: String,
-        category: String
+        category: String,
+        transactionDate: String
     ): Result<Unit>
 }
 
@@ -28,7 +29,8 @@ class TransactionRepositoryImpl : TransactionRepository {
         accountId: String,
         amount: Double,
         type: String,
-        category: String
+        category: String,
+        transactionDate: String
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val transaction = Transaction(
@@ -37,7 +39,8 @@ class TransactionRepositoryImpl : TransactionRepository {
                 amount = amount,
                 type = type,
                 source = if (category.startsWith("Auto SMS")) "SMS" else "Manual",
-                category = category
+                category = category,
+                timestamp = transactionDate
             )
 
             postgrest.from("transactions").insert(transaction)

@@ -11,7 +11,11 @@ import com.example.finbuddy.data.repository.AuthRepository
 import com.example.finbuddy.data.repository.AuthRepositoryImpl
 import com.example.finbuddy.data.repository.TransactionRepository
 import com.example.finbuddy.data.repository.TransactionRepositoryImpl
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 sealed interface TransactionUiState {
     data object Idle : TransactionUiState
@@ -20,16 +24,30 @@ sealed interface TransactionUiState {
     data class Error(val message: String) : TransactionUiState
 }
 
+sealed interface AddTransactionEvent {
+    data object Completed : AddTransactionEvent
+}
+
 class TransactionViewModel(
     private val transactionRepo: TransactionRepository = TransactionRepositoryImpl(),
     private val accountRepo: AccountRepository = AccountRepositoryImpl(),
     private val authRepo: AuthRepository = AuthRepositoryImpl()
 ) : ViewModel() {
+    private val currentDate = LocalDate.now()
+    private val displayFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy")
+
+    val dateState = mutableStateOf(currentDate.format(displayFormatter))
+    val datePayloadState = mutableStateOf(currentDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
 
     var uiState by mutableStateOf<TransactionUiState>(TransactionUiState.Idle)
         private set
 
-    fun saveTransaction(amountStr: String, type: String, category: String) {
+    private val _events = MutableSharedFlow<AddTransactionEvent>()
+    val events = _events.asSharedFlow()
+
+    fun saveTransaction(amountStr: String, type: String, category: String, transactionDate: String) {
+        if (uiState == TransactionUiState.Loading) return
+
         val amount = amountStr.toDoubleOrNull()
         val userId = authRepo.getCurrentUserId()
 
@@ -43,9 +61,17 @@ class TransactionViewModel(
         viewModelScope.launch {
             accountRepo.getPrimaryAccountId(userId).onSuccess { accountId ->
                 if (accountId != null) {
-                    transactionRepo.addManualTransaction(userId, accountId, amount, type, category)
+                    transactionRepo.addManualTransaction(
+                        userId = userId,
+                        accountId = accountId,
+                        amount = amount,
+                        type = type,
+                        category = category,
+                        transactionDate = transactionDate
+                    )
                         .onSuccess {
                             uiState = TransactionUiState.Success
+                            _events.emit(AddTransactionEvent.Completed)
                         }
                         .onFailure { error ->
                             uiState = TransactionUiState.Error(error.localizedMessage ?: "Failed to save")

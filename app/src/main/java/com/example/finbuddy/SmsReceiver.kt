@@ -14,6 +14,8 @@ import com.example.finbuddy.data.repository.TransactionRepositoryImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class SmsReceiver : BroadcastReceiver() {
 
@@ -55,11 +57,19 @@ class SmsReceiver : BroadcastReceiver() {
 
         val category = if (type == "Expense") "Auto SMS Expense" else "Auto SMS Income"
         val userId = authRepo.getCurrentUserId() ?: return
+        val transactionDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
 
         scope.launch {
             accountRepo.getPrimaryAccountId(userId).onSuccess { accountId ->
                 if (accountId != null) {
-                    transactionRepo.addManualTransaction(userId, accountId, amount, type, category)
+                    transactionRepo.addManualTransaction(
+                        userId = userId,
+                        accountId = accountId,
+                        amount = amount,
+                        type = type,
+                        category = category,
+                        transactionDate = transactionDate
+                    )
                         .onSuccess {
                             Log.d("SmsReceiver", "Successfully auto-logged SMS transaction: $amount $type")
                         }
