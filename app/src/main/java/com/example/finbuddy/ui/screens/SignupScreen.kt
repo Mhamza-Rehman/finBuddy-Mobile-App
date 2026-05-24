@@ -43,9 +43,14 @@ fun SignupScreen(
     val context = LocalContext.current
 
     // Observe signup success
-    LaunchedEffect(uiState.isLoggedIn) {
-        if (uiState.isLoggedIn) {
-            Toast.makeText(context, "Registration Successful! Please check your email.", Toast.LENGTH_LONG).show()
+    LaunchedEffect(uiState.signUpSuccess, uiState.isLoggedIn) {
+        if (uiState.signUpSuccess && uiState.isLoggedIn) {
+            Toast.makeText(context, "Registration Successful!", Toast.LENGTH_LONG).show()
+            navController.navigate("dashboard") {
+                popUpTo("signup") { inclusive = true }
+            }
+        } else if (uiState.signUpSuccess) {
+            Toast.makeText(context, "Registration Successful! Please verify your email and log in.", Toast.LENGTH_LONG).show()
             navController.navigate("login") {
                 popUpTo("signup") { inclusive = true }
             }
@@ -102,7 +107,10 @@ fun SignupScreen(
         // Full Name Field
         OutlinedTextField(
             value = fullName,
-            onValueChange = { fullName = it },
+            onValueChange = {
+                fullName = it
+                if (uiState.errorMessage != null) viewModel.clearError()
+            },
             placeholder = { Text("Enter your full name", color = Color.Gray) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(25.dp),
@@ -128,7 +136,10 @@ fun SignupScreen(
         // Email/Phone Field
         OutlinedTextField(
             value = emailOrPhone,
-            onValueChange = { emailOrPhone = it },
+            onValueChange = {
+                emailOrPhone = it
+                if (uiState.errorMessage != null) viewModel.clearError()
+            },
             placeholder = { Text("Enter your email", color = Color.Gray) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(25.dp),
@@ -154,7 +165,10 @@ fun SignupScreen(
         // Create Password Field
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                if (uiState.errorMessage != null) viewModel.clearError()
+            },
             placeholder = { Text("Create a Password", color = Color.Gray) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(25.dp),
@@ -191,7 +205,10 @@ fun SignupScreen(
         // Confirm Password Field
         OutlinedTextField(
             value = confirmPassword,
-            onValueChange = { confirmPassword = it },
+            onValueChange = {
+                confirmPassword = it
+                if (uiState.errorMessage != null) viewModel.clearError()
+            },
             placeholder = { Text("Confirm password", color = Color.Gray) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(25.dp),
@@ -241,8 +258,7 @@ fun SignupScreen(
             Button(
                 onClick = {
                     if (password == confirmPassword) {
-                        // For simplicity, passing emailOrPhone as email and fullName/phone metadata handled in repo
-                        viewModel.signUp(emailOrPhone, password, "") 
+                        viewModel.signUp(emailOrPhone, password, fullName)
                     } else {
                         Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                     }
@@ -266,7 +282,10 @@ fun SignupScreen(
         
         Text(
             text = "Already have an account? Login",
-            modifier = Modifier.clickable { navController.navigate("login") },
+            modifier = Modifier.clickable {
+                viewModel.clearError()
+                navController.navigate("login")
+            },
             color = Color.Gray,
             fontSize = 14.sp
         )

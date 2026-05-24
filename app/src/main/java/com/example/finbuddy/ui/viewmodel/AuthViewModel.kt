@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 data class AuthUiState(
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
+    val signUpSuccess: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -34,14 +35,28 @@ class AuthViewModel(
                 repository.signUp(email, password, phone)
                 val userId = getCurrentUserId()
                 if (userId == null) {
-                    _uiState.value = AuthUiState(errorMessage = "Could not resolve user session after sign up")
+                    _uiState.value = AuthUiState(
+                        signUpSuccess = true
+                    )
                 } else {
-                    verifyAndSeedUserAssets(userId) {
-                        _uiState.value = AuthUiState(isLoggedIn = true)
-                    }
+                    verifyAndSeedUserAssets(userId)
+                        .onSuccess {
+                            _uiState.value = AuthUiState(isLoggedIn = true, signUpSuccess = true)
+                        }
+                        .onFailure { e ->
+                            _uiState.value = AuthUiState(
+                                signUpSuccess = true,
+                                errorMessage = e.localizedMessage ?: "Account created, but setup is incomplete. Please log in."
+                            )
+                        }
                 }
             } catch (e: Exception) {
-                _uiState.value = AuthUiState(errorMessage = e.localizedMessage ?: "Sign up failed")
+                val message = when {
+                    e.message?.contains("already registered", ignoreCase = true) == true ->
+                        "This email is already registered. Please log in."
+                    else -> e.localizedMessage ?: "Sign up failed"
+                }
+                _uiState.value = AuthUiState(errorMessage = message)
             }
         }
     }
@@ -55,9 +70,13 @@ class AuthViewModel(
                 if (userId == null) {
                     _uiState.value = AuthUiState(errorMessage = "Could not resolve user session after login")
                 } else {
-                    verifyAndSeedUserAssets(userId) {
-                        _uiState.value = AuthUiState(isLoggedIn = true)
-                    }
+                    verifyAndSeedUserAssets(userId)
+                        .onSuccess {
+                            _uiState.value = AuthUiState(isLoggedIn = true)
+                        }
+                        .onFailure { e ->
+                            _uiState.value = AuthUiState(errorMessage = e.localizedMessage ?: "Login succeeded, but account setup failed")
+                        }
                 }
             } catch (e: Exception) {
                 _uiState.value = AuthUiState(errorMessage = e.localizedMessage ?: "Login failed")
@@ -80,24 +99,19 @@ class AuthViewModel(
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
 
-    private fun verifyAndSeedUserAssets(userId: String, onVerificationComplete: () -> Unit) {
-        viewModelScope.launch {
-            accountRepository.getPrimaryAccountId(userId)
-                .onSuccess { accountId ->
-                    if (accountId == null) {
-                        accountRepository.createDefaultAccount(userId)
-                            .onSuccess { onVerificationComplete() }
-                            .onFailure { e ->
-                                _uiState.value = AuthUiState(errorMessage = e.localizedMessage ?: "Failed creating default account")
-                            }
-                    } else {
-                        onVerificationComplete()
-                    }
+    private suspend fun verifyAndSeedUserAssets(userId: String): Result<Unit> {
+        return accountRepository.getPrimaryAccountId(userId).fold(
+            onSuccess = { accountId ->
+                if (accountId == null) {
+                    accountRepository.createDefaultAccount(userId)
+                } else {
+                    Result.success(Unit)
                 }
-                .onFailure { e ->
-                    _uiState.value = AuthUiState(errorMessage = e.localizedMessage ?: "Failed verifying user accounts")
-                }
-        }
+            },
+            onFailure = { e ->
+                Result.failure(Exception(e.localizedMessage ?: "Failed verifying user accounts"))
+            }
+        )
     }
 
     private fun getCurrentUserId(): String? {

@@ -95,7 +95,10 @@ fun LoginScreen(
         // Email Field
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                if (uiState.errorMessage != null) viewModel.clearError()
+            },
             placeholder = { Text("Enter your email", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(25.dp),
@@ -121,7 +124,10 @@ fun LoginScreen(
         // Password Field
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                if (uiState.errorMessage != null) viewModel.clearError()
+            },
             placeholder = { Text("Password", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(25.dp),
@@ -199,7 +205,10 @@ fun LoginScreen(
                 color = Color(0xFF0F9D58),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { navController.navigate("signup") }
+                modifier = Modifier.clickable {
+                    viewModel.clearError()
+                    navController.navigate("signup")
+                }
             )
         }
     }
